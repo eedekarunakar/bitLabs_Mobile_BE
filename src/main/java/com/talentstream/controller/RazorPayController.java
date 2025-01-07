@@ -193,7 +193,7 @@ public class RazorPayController {
 
 			logger.info("Payment details not found for recruiter id: ", recruiterId);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body(new ErrorResponse("No Payment Order Found", HttpStatus.NOT_FOUND.value(), "Not Found"));
+					.body(new ErrorResponse("No Active Payment Order Found For Recruiter: "+recruiterId, HttpStatus.NOT_FOUND.value(), "Not Found"));
 		} catch (Exception e) {
 			logger.error("Internal server error occurred while retrieving all jobs.", e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

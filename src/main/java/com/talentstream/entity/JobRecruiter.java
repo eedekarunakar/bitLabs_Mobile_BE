@@ -19,7 +19,14 @@ import lombok.Data;
 //@Data
 public class JobRecruiter {
 
-   
+    public List<PlacementDrive> getPlacementDrive() {
+		return placementDrive;
+	}
+
+	public void setPlacementDrive(List<PlacementDrive> placementDrive) {
+		this.placementDrive = placementDrive;
+	}
+
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

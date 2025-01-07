@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 @Entity
-@Data
+//@Data
 public class JobRecruiter {
 
     public List<PlacementDrive> getPlacementDrive() {
@@ -26,6 +26,7 @@ public class JobRecruiter {
 	public void setPlacementDrive(List<PlacementDrive> placementDrive) {
 		this.placementDrive = placementDrive;
 	}
+
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -139,5 +140,12 @@ public class JobRecruiter {
     public void setRecruiterId(Long recruiterId) {
         this.recruiterId = recruiterId;
     }
+    public List<PlacementDrive> getPlacementDrive() {
+		return placementDrive;
+	}
+
+	public void setPlacementDrive(List<PlacementDrive> placementDrive) {
+		this.placementDrive = placementDrive;
+	}
 
 }

@@ -125,8 +125,8 @@ public class JobService {
             JobRecruiter jobRecruiter = jobRecruiterRepository.findByRecruiterId(jobRecruiterId);
             if (jobRecruiter != null) {
                 Job job = convertDTOToEntity(jobDTO);
+                
                 job.setJobRecruiter(jobRecruiter);
-
                 // Set screening questions
                 if (jobDTO.getScreeningQuestions() != null) {
                     Set<ScreeningQuestion> screeningQuestions = jobDTO.getScreeningQuestions().stream()
@@ -138,6 +138,11 @@ public class JobService {
                         }).collect(Collectors.toSet());
                     job.setScreeningQuestions(screeningQuestions);
                 }
+                
+                //Adding the all Jobs of recruiter
+                List<Job> allJobs=new ArrayList<Job>();
+                allJobs.add(job);
+                jobRecruiter.setJobs(allJobs);
 
                 jobRepository.save(job);
                 return ResponseEntity.status(HttpStatus.OK).body("Job saved successfully.");

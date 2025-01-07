@@ -13,19 +13,10 @@ import javax.persistence.OneToMany;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import lombok.Data;
-
 @Entity
 //@Data
 public class JobRecruiter {
 
-    public List<PlacementDrive> getPlacementDrive() {
-		return placementDrive;
-	}
-
-	public void setPlacementDrive(List<PlacementDrive> placementDrive) {
-		this.placementDrive = placementDrive;
-	}
 
 
 	@Id
@@ -46,6 +37,7 @@ public class JobRecruiter {
     
     @OneToMany(cascade = CascadeType.ALL)
     @JsonIgnore
+    @JsonBackReference
     private List<Job> jobs;
 
     @Column(nullable = false)

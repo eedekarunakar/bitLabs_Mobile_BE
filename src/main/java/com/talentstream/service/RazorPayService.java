@@ -2,12 +2,13 @@ package com.talentstream.service;
 
 import java.util.List;
 import java.util.Optional;
- 
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
- 
+
 import com.razorpay.Order;
 import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
@@ -28,7 +29,10 @@ public class RazorPayService {
 	@Autowired
 	private RazorpayClient razorpayClient;
 
- 
+    @Value("${razorpay.secret}")
+    private String razorPaySecret;
+    
+    
     @Autowired
     private JobRecruiterRepository jobRecruiterRepository;
     public JobRecruiter getRecruiter(Long recruiterId) throws Exception{
@@ -60,7 +64,7 @@ public class RazorPayService {
 	public boolean verifyPayment(String paymentId, String orderId, String razorpaySignature) {
 		  String payload = orderId + '|' + paymentId;
 		  try {
-		     boolean verifySignature = RazorPayUtills.verifySignature(payload, razorpaySignature, "sTRRMWjVV4JQVp3kprwM02ql");
+		     boolean verifySignature = RazorPayUtills.verifySignature(payload, razorpaySignature, razorPaySecret);
 		     System.out.println("Verified Signature: "+verifySignature);
 		     return verifySignature;
 		  } catch (Exception e) {

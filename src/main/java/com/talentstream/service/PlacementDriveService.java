@@ -56,7 +56,7 @@ public class PlacementDriveService {
 		alldrives.add(drive);
 		
 		//Recruiter adding alldrives
-		recruiter.setPlacementDrive(alldrives);
+		//recruiter.setPlacementDrive(alldrives);
 		
 		//Driver to add Recruiter
 		System.out.println("Creating placement");

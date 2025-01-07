@@ -2,11 +2,15 @@ package com.talentstream.dto;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class PaymentDetailsDto {
 	
 	private String orderId;
 	private Long recruiterId;
 	private Double amount;
+	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
 	private LocalDateTime orderDate;
 	private String orderStatus;
 	private Boolean isActive;

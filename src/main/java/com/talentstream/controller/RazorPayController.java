@@ -151,12 +151,12 @@ public class RazorPayController {
 
 			logger.info("Returning Error Response");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new ErrorResponse("Payment Verification Failed", HttpStatus.NOT_FOUND.value(), "Failed"));
+					.body(new ErrorResponse("Payment Verification Failed Please Check Order Id, Payment Id and Signature", HttpStatus.NOT_FOUND.value(), "Failed"));
 
 		} catch (RazorpayException e) {
 			logger.error("Some error occured", e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body(new ErrorResponse("Internal Error Verifying Payment Order",
+					.body(new ErrorResponse("Internal Error While Verifying Payment Order",
 							HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server"));
 		}
 	}
@@ -170,7 +170,7 @@ public class RazorPayController {
 
 			if (recruiterId == null) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(new ErrorResponse("Invalid Recruiter id", HttpStatus.BAD_REQUEST.value(), "Failed"));
+						.body(new ErrorResponse("Please Provide Valid Recruiter Id", HttpStatus.BAD_REQUEST.value(), "Failed"));
 			}
 
 			List<RazorPayOrder> details = razorPayService.getPaymentDetilsById(recruiterId);

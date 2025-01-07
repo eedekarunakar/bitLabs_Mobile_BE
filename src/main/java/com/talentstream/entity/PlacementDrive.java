@@ -27,7 +27,7 @@ enum ExamMode {
 }
 
 @Entity
-@Data
+//@Data
 public class PlacementDrive {
 
 	@Id

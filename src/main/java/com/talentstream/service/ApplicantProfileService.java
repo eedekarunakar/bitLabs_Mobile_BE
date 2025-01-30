@@ -4,16 +4,20 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
+import javax.transaction.Transactional;
+
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.talentstream.exception.CustomException;
+
 import com.talentstream.dto.ApplicantProfileDTO;
 import com.talentstream.dto.ApplicantProfileViewDTO;
 import com.talentstream.dto.BasicDetailsDTO;
@@ -23,9 +27,11 @@ import com.talentstream.entity.ApplicantProfile;
 import com.talentstream.entity.ApplicantProfileUpdateDTO;
 import com.talentstream.entity.ApplicantSkillBadge;
 import com.talentstream.entity.ApplicantSkills;
+import com.talentstream.entity.BasicDetails;
 import com.talentstream.entity.Job;
 import com.talentstream.entity.RecuriterSkills;
 import com.talentstream.entity.SkillBadge;
+import com.talentstream.exception.CustomException;
 import com.talentstream.repository.ApplicantProfileRepository;
 import com.talentstream.repository.ApplicantSkillBadgeRepository;
 import com.talentstream.repository.ApplicantSkillsRepository;
@@ -33,11 +39,6 @@ import com.talentstream.repository.ApplicantTestRepository;
 import com.talentstream.repository.JobRepository;
 import com.talentstream.repository.RegisterRepository;
 import com.talentstream.repository.SkillBadgeRepository;
-
-import javax.persistence.EntityNotFoundException;
-import javax.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 public class ApplicantProfileService {
@@ -254,21 +255,51 @@ public class ApplicantProfileService {
 
 	// Updates the applicant's basic details in the profile; uses @Transactional for
 	// atomicity.
+//	@Transactional
+//	public String updateBasicDetails(Long applicantId, BasicDetailsDTO basicDetailsDTO) {
+//		ApplicantProfile applicantProfile = applicantProfileRepository.findByApplicantId(applicantId);
+//
+//		applicantProfile.getBasicDetails().setFirstName(basicDetailsDTO.getFirstName());
+//		applicantProfile.getBasicDetails().setLastName(basicDetailsDTO.getLastName());
+//		applicantProfile.getBasicDetails().setDateOfBirth(basicDetailsDTO.getDateOfBirth());
+//		applicantProfile.getBasicDetails().setAddress(basicDetailsDTO.getAddress());
+//		applicantProfile.getBasicDetails().setCity(basicDetailsDTO.getCity());
+//		applicantProfile.getBasicDetails().setState(basicDetailsDTO.getState());
+//		applicantProfile.getBasicDetails().setPincode(basicDetailsDTO.getPincode());
+//		applicantProfile.getBasicDetails().setEmail(basicDetailsDTO.getEmail());
+//		applicantProfile.getBasicDetails().setAlternatePhoneNumber(basicDetailsDTO.getAlternatePhoneNumber());
+//
+//		applicantProfileRepository.save(applicantProfile);
+//		return "Profile Updated successfully";
+//	}
 	@Transactional
-	public void updateBasicDetails(Long applicantId, BasicDetailsDTO basicDetailsDTO) {
-		ApplicantProfile applicantProfile = applicantProfileRepository.findByApplicantId(applicantId);
+	public String updateBasicDetails(Long applicantId, BasicDetailsDTO basicDetailsDTO) {
+	    // Fetch applicant profile
+	    ApplicantProfile applicantProfile = applicantProfileRepository.findByApplicantId(applicantId);
+	    if (applicantProfile == null) {
+	        throw new CustomException("Applicant profile not found for ID: " + applicantId, HttpStatus.NOT_FOUND);
+	    }
 
-		applicantProfile.getBasicDetails().setFirstName(basicDetailsDTO.getFirstName());
-		applicantProfile.getBasicDetails().setLastName(basicDetailsDTO.getLastName());
-		applicantProfile.getBasicDetails().setDateOfBirth(basicDetailsDTO.getDateOfBirth());
-		applicantProfile.getBasicDetails().setAddress(basicDetailsDTO.getAddress());
-		applicantProfile.getBasicDetails().setCity(basicDetailsDTO.getCity());
-		applicantProfile.getBasicDetails().setState(basicDetailsDTO.getState());
-		applicantProfile.getBasicDetails().setPincode(basicDetailsDTO.getPincode());
-		applicantProfile.getBasicDetails().setEmail(basicDetailsDTO.getEmail());
-		applicantProfile.getBasicDetails().setAlternatePhoneNumber(basicDetailsDTO.getAlternatePhoneNumber());
+	    // Check if BasicDetails is null, and initialize if needed
+	    if (applicantProfile.getBasicDetails() == null) {
+	        applicantProfile.setBasicDetails(new BasicDetails());
+	    }
 
-		applicantProfileRepository.save(applicantProfile);
+	    // Update BasicDetails
+	    BasicDetails basicDetails = applicantProfile.getBasicDetails();
+	    basicDetails.setFirstName(basicDetailsDTO.getFirstName());
+	    basicDetails.setLastName(basicDetailsDTO.getLastName());
+	    basicDetails.setDateOfBirth(basicDetailsDTO.getDateOfBirth());
+	    basicDetails.setAddress(basicDetailsDTO.getAddress());
+	    basicDetails.setCity(basicDetailsDTO.getCity());
+	    basicDetails.setState(basicDetailsDTO.getState());
+	    basicDetails.setPincode(basicDetailsDTO.getPincode());
+	    basicDetails.setEmail(basicDetailsDTO.getEmail());
+	    basicDetails.setAlternatePhoneNumber(basicDetailsDTO.getAlternatePhoneNumber());
+
+	    // Save updated profile
+	    applicantProfileRepository.save(applicantProfile);
+	    return "Profile Updated successfully";
 	}
 
 	// Updates the applicant's profile with new information; throws CustomException

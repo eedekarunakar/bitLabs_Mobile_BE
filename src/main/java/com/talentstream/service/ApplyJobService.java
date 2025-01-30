@@ -4,22 +4,26 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Map;
-import java.util.Set;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.mail.internet.InternetAddress;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.talentstream.dto.ApplicantSkillBadgeDTO;
 import com.talentstream.dto.JobDTO;
 import com.talentstream.dto.RecuriterSkillsDTO;
 import com.talentstream.entity.Alerts;
@@ -28,33 +32,28 @@ import com.talentstream.entity.ApplicantJobInterviewDTO;
 import com.talentstream.entity.ApplicantProfile;
 import com.talentstream.entity.ApplicantSkillBadge;
 import com.talentstream.entity.ApplicantStatusHistory;
-import com.talentstream.entity.ApplicantTest;
 import com.talentstream.entity.AppliedApplicantInfo;
 import com.talentstream.entity.AppliedApplicantInfoDTO;
 import com.talentstream.entity.ApplyJob;
 import com.talentstream.entity.Job;
+import com.talentstream.entity.JobRecruiter;
 import com.talentstream.entity.MatchTypes;
 import com.talentstream.entity.RecuriterSkills;
-
-import java.util.stream.Collectors;
-
-import javax.mail.internet.InternetAddress;
-
-import com.talentstream.entity.JobRecruiter;
 import com.talentstream.entity.SavedJob;
+import com.talentstream.exception.CustomException;
 import com.talentstream.repository.AlertsRepository;
 import com.talentstream.repository.ApplicantProfileRepository;
 import com.talentstream.repository.ApplicantSkillBadgeRepository;
 import com.talentstream.repository.ApplicantStatusHistoryRepository;
 import com.talentstream.repository.ApplicantTestRepository;
 import com.talentstream.repository.ApplyJobRepository;
-import com.talentstream.repository.JobRepository;
 import com.talentstream.repository.JobRecruiterRepository;
+import com.talentstream.repository.JobRepository;
 import com.talentstream.repository.RegisterRepository;
 import com.talentstream.repository.SavedJobRepository;
 import com.talentstream.repository.ScheduleInterviewRepository;
+
 import jakarta.persistence.EntityNotFoundException;
-import com.talentstream.exception.CustomException;
 
 @Service
 public class ApplyJobService {
@@ -101,69 +100,52 @@ public class ApplyJobService {
 
 	// Allows an applicant to apply for a job, handling existing applications and
 	// sending alerts if successful.
-	public String ApplicantApplyJob(long applicantId, long jobId) {
+//	
 
-		try {
-			Applicant applicant = applicantRepository.findById(applicantId);
-			Job job = jobRepository.findById(jobId).orElse(null);
-
-			if (applicant == null || job == null) {
-				throw new CustomException("Applicant ID or Job ID not found", HttpStatus.NOT_FOUND);
-			}
-
-			else {
-				if (applyJobRepository.existsByApplicantAndJob(applicant, job)) {
-					return "Job has already been applied by the applicant";
-				} else {
-					ApplyJob applyJob = new ApplyJob();
-					applyJob.setApplicant(applicant);
-					applyJob.setJob(job);
-					applyJobRepository.save(applyJob);
-
-					if (savedJobRepository.existsByApplicantIdAndJobId(applicant.getId(), job.getId())) {
-						System.out.println("saved changed");
-						SavedJob savedJob = savedJobRepository.findByApplicantAndJob(applicant, job);
-
-						savedJob.setApplicant(applicant);
-						savedJob.setSaveJobStatus("removed from saved");
-						jobRepository.save(job);
-						savedJob.setJob(job);
-						savedJobRepository.save(savedJob);
-					}
-
-					job.setJobStatus("Already Applied");
-					job.setAlertCount(job.getAlertCount() + 1);
-					job.setRecentApplicationDateTime(LocalDateTime.now());
-					job.setNewStatus("newapplicants");
-					jobRepository.save(job);
-					saveStatusHistory(applyJob, applyJob.getApplicantStatus());
-					Job jobs = applyJob.getJob();
-					if (jobs != null) {
-						JobRecruiter recruiter = jobs.getJobRecruiter();
-
-						if (recruiter != null) {
-							String companyName = recruiter.getCompanyname();
-							if (companyName != null) {
-								String cN = recruiter.getCompanyname();
-
-								String jobTitle = jobs.getJobTitle();
-								recruiter.setAlertCount(recruiter.getAlertCount() + 1);
-								jobRecruiterRepository.save(recruiter);
-								sendAlerts(applyJob, applyJob.getApplicantStatus(), cN, jobTitle);
-								return "Job applied successfully";
-							}
-						}
-					}
-					return "Company information not found for the given ApplyJob";
-				}
-			}
-		} catch (CustomException ex) {
-			throw ex;
-		} catch (Exception e) {
-			throw new CustomException("An error occurred while applying for the job: " + e.getMessage(),
-					HttpStatus.INTERNAL_SERVER_ERROR);
+	
+	
+	
+	// Allows an applicant to apply for a job, handling existing applications and
+		// sending alerts if successful.
+		public String ApplicantApplyJob(long applicantId, long jobId) {
+		    try {
+		        Applicant applicant = applicantRepository.findById(applicantId);
+		        Job job = jobRepository.findById(jobId).orElse(null);
+		        if (applicant == null || job == null) {
+		            throw new CustomException("Applicant ID or Job ID not found", HttpStatus.NOT_FOUND);
+		        }
+		        try {
+		            // Apply for the job (DB hit reduced by removing existence check)
+		            ApplyJob applyJob = new ApplyJob();
+		            applyJob.setApplicant(applicant);
+		            applyJob.setJob(job);
+		            applyJobRepository.save(applyJob);
+		           //  Remove from saved jobs if it exists
+		            SavedJob savedJob = savedJobRepository.findByApplicantAndJob(applicant, job);
+		            if (savedJob != null) {
+		                savedJob.setSaveJobStatus("removed from saved");
+		                savedJobRepository.save(savedJob);
+		            }
+	      			saveStatusHistory(applyJob, applyJob.getApplicantStatus());
+		            // Alert recruiter if applicable
+		            JobRecruiter recruiter = job.getJobRecruiter();
+		            if (recruiter != null && recruiter.getCompanyname() != null) {
+		                recruiter.setAlertCount(recruiter.getAlertCount() + 1);
+		                jobRecruiterRepository.save(recruiter);
+		                sendAlerts(applyJob, applyJob.getApplicantStatus(), recruiter.getCompanyname(), job.getJobTitle());
+		                return "Job applied successfully";
+		            }
+		            return "Company information not found for the given ApplyJob";
+		        } catch (DataIntegrityViolationException e) {
+		            return "Job has already been applied by the applicant";
+		        }
+		    } catch (CustomException ex) {
+		        throw ex;
+		    } catch (Exception e) {
+		        throw new CustomException("An error occurred while applying for the job: " + e.getMessage(),
+		                HttpStatus.INTERNAL_SERVER_ERROR);
+		    }
 		}
-	}
 
 	// Counts the number of jobs applied for by the specified applicant, throwing an
 	// error if the applicant is not found.

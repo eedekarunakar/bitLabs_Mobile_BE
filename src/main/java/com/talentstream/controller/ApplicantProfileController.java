@@ -1,5 +1,15 @@
 package com.talentstream.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.persistence.EntityNotFoundException;
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +23,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.talentstream.dto.ApplicantProfileDTO;
 import com.talentstream.dto.ApplicantProfileViewDTO;
 import com.talentstream.dto.BasicDetailsDTO;
@@ -20,17 +31,6 @@ import com.talentstream.entity.Applicant;
 import com.talentstream.entity.ApplicantProfileUpdateDTO;
 import com.talentstream.exception.CustomException;
 import com.talentstream.service.ApplicantProfileService;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import javax.persistence.EntityNotFoundException;
-import javax.validation.Valid;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @CrossOrigin("*")
 @RestController
@@ -177,34 +177,47 @@ public class ApplicantProfileController {
         return applicantProfileService.getApplicantProfileById1(applicantId);
     }
 
+
     @PutMapping("/{id}/basic-details")
-    public ResponseEntity<String> updateBasicDetails(@Valid @RequestBody BasicDetailsDTO basicDetailsDTO,
-            BindingResult bindingResult, @PathVariable Long id) {
+    public ResponseEntity<String> updateBasicDetails(
+            @Valid @RequestBody BasicDetailsDTO basicDetailsDTO,
+            BindingResult bindingResult,
+            @PathVariable Long id) {
+        
+        // Handle validation errors
         if (bindingResult.hasErrors()) {
-            // Handle validation errors
             Map<String, String> fieldErrors = new LinkedHashMap<>();
 
             bindingResult.getFieldErrors().forEach(fieldError -> {
                 String fieldName = fieldError.getField();
                 String errorMessage = fieldError.getDefaultMessage();
 
-                // Append each field and its error message on a new line
+                // Append each field and its error message
                 fieldErrors.merge(fieldName, errorMessage,
                         (existingMessage, newMessage) -> existingMessage + "\n" + newMessage);
             });
 
-            // Construct the response body with each field and its error message on separate
-            // lines
+            // Construct the response body with all field errors
             StringBuilder responseBody = new StringBuilder();
-            fieldErrors.forEach((fieldName, errorMessage) -> responseBody.append(fieldName).append(": ")
-                    .append(errorMessage).append("\n"));
-            logger.warn("Validation errors occurred during registering new applicant: {}", responseBody);
+            fieldErrors.forEach((fieldName, errorMessage) -> 
+                responseBody.append(fieldName).append(": ").append(errorMessage).append("\n"));
+
+            logger.warn("Validation errors occurred: {}", responseBody);
             return ResponseEntity.badRequest().body(responseBody.toString());
         }
 
-        applicantProfileService.updateBasicDetails(id, basicDetailsDTO);
-        return ResponseEntity.ok().build();
+        try {
+            String result = applicantProfileService.updateBasicDetails(id, basicDetailsDTO);
+            return ResponseEntity.ok(result);
+        } catch (CustomException e) {
+            logger.error("Failed to update basic details: {}", e.getMessage(), e);
+            return ResponseEntity.status(e.getStatus()).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("An unexpected error occurred while updating basic details", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
     }
+
 
     @PutMapping("/{id}/professional-details")
     public ResponseEntity<String> updateApplicantProfile(@Valid @RequestBody ApplicantProfileUpdateDTO updateDTO,

@@ -12,7 +12,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.talentstream.entity.ApplicantSkills;
 import com.talentstream.entity.Job;
@@ -91,8 +90,24 @@ public interface JobRepository extends JpaRepository<Job, Long>, JpaSpecificatio
 		@Query("SELECT COUNT(j) FROM Job j WHERE j.jobRecruiter.id = :recruiterId AND j.status = 'inactive'")
 	    long countInActiveJobsByRecruiterId(@Param("recruiterId") Long recruiterId);
 		
-	    @Query("SELECT j FROM Job j WHERE j.jobRecruiter.recruiterId = :recruiterId AND j.placementDrive.id IS NULL")
-		List<Job> findBygetAllJobswithoutConductingDrive(@Param("recruiterId") Long recruiterId);
+		@Query("SELECT DISTINCT j " +
+	            "FROM Job j " +
+	            "LEFT JOIN SavedJob asj ON asj.job = j AND asj.applicant.id = :applicantId " +
+	            "LEFT JOIN ApplyJob aj ON aj.job = j AND aj.applicant.id = :applicantId " +
+	            "WHERE j.status != 'inactive' " +
+	            "AND aj.id IS NULL " + // Exclude applied jobs
+	            "AND asj.id IS NULL " + // Exclude saved jobs
+	            "AND (LOWER(j.specialization) = LOWER(:specialization) " +
+	            "OR j.minimumExperience = :experience " +
+	            "OR j.location IN :preferredLocations " +
+	            "OR EXISTS (SELECT 1 FROM j.skillsRequired s WHERE LOWER(s.skillName) IN :skillNames))")
+	    Page<Job> findJobsMatchingApplicantProfile(
+	            @Param("applicantId") long applicantId,
+	            @Param("skillNames") Set<String> skillNames,
+	            @Param("preferredLocations") Set<String> preferredLocations,
+	            @Param("experience") Integer experience,
+	            @Param("specialization") String specialization,
+	            Pageable pageable);
 
 	
 }

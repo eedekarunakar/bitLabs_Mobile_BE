@@ -204,6 +204,13 @@
         <artifactId>HikariCP</artifactId>
         <version>5.0.1</version> <!-- Check for latest version -->
     </dependency>
+    
+    <!--JOD CONVERTED DOC TO PDF-->
+    <dependency>
+			<groupId>org.jodconverter</groupId>
+			<artifactId>jodconverter-local</artifactId>
+			<version>4.4.0</version>
+		</dependency>
 
 	</dependencies>
 

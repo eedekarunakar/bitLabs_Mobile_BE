@@ -2,6 +2,7 @@ package com.talentstream.controller;
 
 import java.io.IOException;
 
+import org.jodconverter.core.office.OfficeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +43,7 @@ public class ApplicantResumeController {
     }
 	
 	@GetMapping("/getresume/{applicantId}")
-    public ResponseEntity<Resource> getResume(@PathVariable long applicantId) throws IOException {
+    public ResponseEntity<Resource> getResume(@PathVariable long applicantId) throws IOException, OfficeException {
         return applicantResumeService.getResumeByApplicantId(applicantId);
     }
  

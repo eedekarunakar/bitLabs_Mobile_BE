@@ -22,9 +22,9 @@ public class LibreOfficeConfig {
                     .build();
             try {
                 officeManager.start();
-                System.out.println("✅ LibreOffice started successfully.");
+                System.out.println("LibreOffice started successfully.");
             } catch (Exception e) {
-                System.err.println("❌ Error starting LibreOffice: " + e.getMessage());
+                System.err.println("Error starting LibreOffice: " + e.getMessage());
             }
         }
         return officeManager;

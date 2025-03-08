@@ -186,7 +186,7 @@ public class ApplicantResumeService {
                 if ("doc".equalsIgnoreCase(fileExtension) || "docx".equalsIgnoreCase(fileExtension)) {
                     try (InputStream docInputStream = Files.newInputStream(filePath)) {
                     	
-                        ByteArrayResource pdfResource = convertDocToPdfInMemory(docInputStream);
+                        ByteArrayResource pdfResource = convertToPdf(docInputStream);
 
                         String pdfFileName = fileName.replaceFirst("\\.(doc|docx)$", ".pdf");
 
@@ -218,7 +218,7 @@ public class ApplicantResumeService {
     
     
     //method converting doc and docx into pdf before retreving
-    public   ByteArrayResource convertDocToPdfInMemory(InputStream docInputStream) throws IOException, OfficeException {
+    public   ByteArrayResource convertToPdf(InputStream docInputStream) throws IOException, OfficeException {
     	ByteArrayOutputStream pdfOutputStream = new ByteArrayOutputStream();
         try {
             LocalConverter.make(officeManager)

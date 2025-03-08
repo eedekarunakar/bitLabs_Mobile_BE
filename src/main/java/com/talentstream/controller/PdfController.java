@@ -115,7 +115,7 @@ public class PdfController {
 			// added code for doc and docx
 			if (fileExtension.equals(".doc") || fileExtension.equals(".docx")) {
 
-				ByteArrayResource convertDocToPdfInMemory = applicantResumeService.convertDocToPdfInMemory(inputStream);
+				ByteArrayResource convertDocToPdfInMemory = applicantResumeService.convertToPdf(inputStream);
 
 				HttpHeaders headers = new HttpHeaders();
 				headers.setContentType(MediaType.APPLICATION_PDF);

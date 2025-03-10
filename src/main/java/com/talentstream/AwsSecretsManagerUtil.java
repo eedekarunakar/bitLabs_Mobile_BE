@@ -49,7 +49,6 @@ public class AwsSecretsManagerUtil {
               System.err.println("AWS credentials or region are not set in environment variables.");
               return null;
           }
-          // Initialize AWS Secrets Manager client with credentials
           SecretsManagerClient secretsClient = SecretsManagerClient.builder()
                   .region(Region.of(REGION))
                   .credentialsProvider(StaticCredentialsProvider.create(

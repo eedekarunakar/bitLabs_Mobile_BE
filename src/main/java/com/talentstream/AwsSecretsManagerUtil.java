@@ -55,8 +55,8 @@ public class AwsSecretsManagerUtil {
                           AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY)
                   ))
                   .build();
-          
-          // Fetch the secret
+
+			
           GetSecretValueRequest request = GetSecretValueRequest.builder()
                   .secretId(DATABASE_SECRET_NAME)
                   .build();
